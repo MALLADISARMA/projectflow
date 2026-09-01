@@ -9,7 +9,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.zosh.config.JwtProvider;
 import com.zosh.modal.User;
@@ -17,6 +20,7 @@ import com.zosh.repository.UserRepository;
 import com.zosh.request.LoginRequest;
 import com.zosh.response.AuthResponse;
 import com.zosh.service.CustomeUserDetailsImpl;
+import com.zosh.service.SubscriptionService;
 
 @RestController
 @RequestMapping("/auth")
@@ -31,6 +35,10 @@ public class AuthController {
     // ✅ FIX ADDED HERE
     @Autowired
     private CustomeUserDetailsImpl customeUserDetails;
+    
+    @Autowired
+    private SubscriptionService subscriptionService;
+    
 
     @PostMapping("/signup")
     public ResponseEntity<AuthResponse> createUserHandler(@RequestBody User user) throws Exception {
@@ -48,6 +56,11 @@ public class AuthController {
 
         User savedUser = userRepository.save(createdUser);
 
+        subscriptionService.createSubscription(savedUser);
+        
+        
+        
+        
         Authentication authentication =
                 new UsernamePasswordAuthenticationToken(
                         user.getEmail(),
