@@ -57,7 +57,27 @@ mvnw.cmd clean package
 
 ## Configuration
 
-Application configuration is located in [projectmanagementsystem/src/main/resources/application.properties](projectmanagementsystem/src/main/resources/application.properties). Update database settings, JWT secrets, and other environment-specific values there or via environment variables.
+Application configuration is located in [projectmanagementsystem/src/main/resources/application.properties](projectmanagementsystem/src/main/resources/application.properties). Runtime settings can be overridden with environment variables:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `DB_URL` | `jdbc:mysql://localhost:3306/projectmanagementsystem?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC` | MySQL JDBC URL |
+| `DB_USERNAME` | `root` | MySQL username |
+| `DB_PASSWORD` | empty | MySQL password |
+| `DB_DDL_AUTO` | `update` | Hibernate schema behavior |
+| `JWT_SECRET` | local-development-only value | JWT signing secret; set a private secret of at least 32 bytes outside local development |
+| `MAIL_USERNAME`, `MAIL_PASSWORD` | empty | SMTP credentials |
+| `RAZORPAY_API_KEY`, `RAZORPAY_API_SECRET` | empty | Razorpay credentials |
+
+Local startup uses MySQL on `localhost:3306`; set `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` to match your MySQL installation. Email and payment credentials are only needed when using those integrations. Tests use an isolated in-memory H2 database and do not require MySQL or external-service credentials.
+
+For local development on Windows, edit the ignored `projectmanagementsystem/.env` file with your credentials, then run:
+
+```powershell
+.\run-local.ps1
+```
+
+The `.env` file is excluded from Git. `.env.example` is a credentials-free template; do not commit real passwords or API keys.
 
 Important JWT helpers are in the `config` package: [projectmanagementsystem/src/main/java/com/zosh/config](projectmanagementsystem/src/main/java/com/zosh/config).
 
