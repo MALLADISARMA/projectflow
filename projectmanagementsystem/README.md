@@ -68,6 +68,8 @@ Application configuration is located in [projectmanagementsystem/src/main/resour
 | `JWT_SECRET` | local-development-only value | JWT signing secret; set a private secret of at least 32 bytes outside local development |
 | `MAIL_USERNAME`, `MAIL_PASSWORD` | empty | SMTP credentials |
 | `RAZORPAY_API_KEY`, `RAZORPAY_API_SECRET` | empty | Razorpay credentials |
+| `RAZORPAY_WEBHOOK_SECRET` | empty | Secret configured for the Razorpay webhook |
+| `APP_FRONTEND_URL` | `http://localhost:5173` | Frontend base URL used for payment redirects |
 
 Local startup uses MySQL on `localhost:3306`; set `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` to match your MySQL installation. Email and payment credentials are only needed when using those integrations. Tests use an isolated in-memory H2 database and do not require MySQL or external-service credentials.
 
@@ -77,7 +79,7 @@ For local development on Windows, edit the ignored `projectmanagementsystem/.env
 .\run-local.ps1
 ```
 
-The `.env` file is excluded from Git. `.env.example` is a credentials-free template; do not commit real passwords or API keys.
+The `.env` file is excluded from Git. `.env.example` is a credentials-free template; do not commit real passwords or API keys. To enable paid plan upgrades, configure a Razorpay webhook for `POST /webhooks/razorpay`, subscribe to the `payment_link.paid` event, and put its webhook signing secret in `RAZORPAY_WEBHOOK_SECRET`. The server validates the webhook signature and applies the plan only after payment confirmation; the frontend must not call a direct plan-upgrade endpoint.
 
 Important JWT helpers are in the `config` package: [projectmanagementsystem/src/main/java/com/zosh/config](projectmanagementsystem/src/main/java/com/zosh/config).
 

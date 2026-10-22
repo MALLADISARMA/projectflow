@@ -13,9 +13,13 @@ public interface ProjectService {
 
 	Project getProjectById(Long projectId) throws Exception;
 
-	void deleteProject(Long projectId, Long userId) throws Exception;
+	Project getProjectForMember(Long projectId, User user) throws Exception;
 
-	Project updateProject(Project updatedProject, Long id) throws Exception;
+	Project getProjectForOwner(Long projectId, User user) throws Exception;
+
+	void deleteProject(Long projectId, User user) throws Exception;
+
+	Project updateProject(Project updatedProject, Long id, User user) throws Exception;
 	
 	void addUserToProject(Long projectId, Long userId) throws Exception;
 

@@ -3,7 +3,6 @@ package com.zosh.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,13 +25,17 @@ public class IssueController {
     private UserService userService;
 
     @GetMapping("/{issueId}")
-    public ResponseEntity<Issue> getIssueById(@PathVariable Long issueId) throws Exception {
-        return ResponseEntity.ok(issueService.getIssueById(issueId));
+    public ResponseEntity<Issue> getIssueById(@PathVariable Long issueId,
+            @RequestHeader("Authorization") String token) throws Exception {
+        User user = userService.findUserProfileByJwt(token);
+        return ResponseEntity.ok(issueService.getIssueById(issueId, user));
     }
 
     @GetMapping("/project/{projectId}")
-    public ResponseEntity<List<Issue>> getIssueByProjectId(@PathVariable Long projectId) throws Exception {
-        return ResponseEntity.ok(issueService.getIssueByProjectId(projectId));
+    public ResponseEntity<List<Issue>> getIssueByProjectId(@PathVariable Long projectId,
+            @RequestHeader("Authorization") String token) throws Exception {
+        User user = userService.findUserProfileByJwt(token);
+        return ResponseEntity.ok(issueService.getIssueByProjectId(projectId, user));
     }
 
     @PostMapping
@@ -41,13 +44,6 @@ public class IssueController {
             @RequestHeader("Authorization") String token) throws Exception {
 
         User tokenUser = userService.findUserProfileByJwt(token);
-        User user = userService.findUserById(tokenUser.getId());
-
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        // ✅ FIXED CALL
         Issue createdIssue = issueService.createIssue(issueRequest, tokenUser);
 
         IssueDTO issueDTO = new IssueDTO();
@@ -70,7 +66,7 @@ public class IssueController {
     public ResponseEntity<MessageResponse> deleteIssue(@PathVariable Long issueId,
     		@RequestHeader("Authorization") String token) throws Exception {
         User user = userService.findUserProfileByJwt(token);
-        issueService.deleteIssue(issueId, user.getId());
+        issueService.deleteIssue(issueId, user);
 
         MessageResponse res=new MessageResponse();
         res.setMessage("Issue deleted");
@@ -82,17 +78,20 @@ public class IssueController {
 
     @PutMapping("/{issueId}/assignee/{userId}")
     public ResponseEntity<Issue> addUserToIssue(@PathVariable Long issueId,
-    		@PathVariable Long userId) throws Exception {
-
-        Issue issue = issueService.addUserToIssue(issueId, userId);
+            @PathVariable Long userId,
+            @RequestHeader("Authorization") String token) throws Exception {
+        User user = userService.findUserProfileByJwt(token);
+        Issue issue = issueService.addUserToIssue(issueId, userId, user);
 
         return ResponseEntity.ok(issue);
     }
     @PutMapping("/{issueId}/status/{status}")
     public ResponseEntity<Issue> updateIssueStatus(
             @PathVariable String status,
-            @PathVariable Long issueId) throws Exception {
-        Issue issue = issueService.updateStatus(issueId, status);
+            @PathVariable Long issueId,
+            @RequestHeader("Authorization") String token) throws Exception {
+        User user = userService.findUserProfileByJwt(token);
+        Issue issue = issueService.updateStatus(issueId, status, user);
         return ResponseEntity.ok(issue);
     }
 

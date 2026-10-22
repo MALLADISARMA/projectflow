@@ -36,6 +36,9 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 	public Subscription getUsersSubscription(Long userId) throws Exception {
 		// TODO Auto-generated method stub
 		Subscription subscription = subscriptionRepository.findByUserId(userId);
+		if (subscription == null) {
+			throw new IllegalStateException("Subscription not found for user " + userId);
+		}
 		if (!isValid(subscription)) {
 		    subscription.setPlanType(PlanType.FREE);
 		    subscription.setSubscriptionEndDate(LocalDate.now().plusMonths(12));
@@ -49,8 +52,13 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
 	@Override
 	public Subscription upgradeSubscription(Long userId, PlanType planType) {
-		// TODO Auto-generated method stub
 		Subscription subscription = subscriptionRepository.findByUserId(userId);
+		if (subscription == null) {
+			throw new IllegalStateException("Subscription not found for user " + userId);
+		}
+		if (planType == null || planType == PlanType.FREE) {
+			throw new IllegalArgumentException("A paid subscription plan is required");
+		}
 		subscription.setPlanType(planType);
 		subscription.setSubscriptionStartDate(LocalDate.now());
 
@@ -65,15 +73,18 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
 	@Override
 	public boolean isValid(Subscription subscription) {
-
-		    if (subscription.getPlanType().equals(PlanType.FREE)) {
+		    if (subscription == null) {
+		        return false;
+		    }
+		    if (subscription.getPlanType() == PlanType.FREE) {
 		        return true;
 		    }
 		    LocalDate endDate = subscription.getSubscriptionEndDate();
+		    if (endDate == null) {
+		        return false;
+		    }
 		    LocalDate currentDate = LocalDate.now();
 
 		    return endDate.isAfter(currentDate) || endDate.isEqual(currentDate);
 		}
 	}
-
-

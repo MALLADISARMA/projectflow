@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.zosh.modal.Issue;
 import com.zosh.modal.User;
@@ -13,6 +14,7 @@ import com.zosh.repository.IssueRepository;
 import com.zosh.request.IssueRequest;
 
 @Service
+@Transactional(readOnly = true)
 public class IssueServiceImpl implements IssueService {
 
     @Autowired
@@ -25,25 +27,29 @@ public class IssueServiceImpl implements IssueService {
     private UserService userService;
 
     @Override
-    public Issue getIssueById(Long issueId) throws Exception {
+    public Issue getIssueById(Long issueId, User user) throws Exception {
         Optional<Issue> issue = issueRepository.findById(issueId);
 
         if (issue.isPresent()) {
-            return issue.get();
+            Issue foundIssue = issue.get();
+            projectService.getProjectForMember(foundIssue.getProject().getId(), user);
+            return foundIssue;
         }
 
         throw new Exception("No issues found with issue id " + issueId);
     }
 
     @Override
-    public List<Issue> getIssueByProjectId(Long projectId) throws Exception {
+    public List<Issue> getIssueByProjectId(Long projectId, User user) throws Exception {
+        projectService.getProjectForMember(projectId, user);
         return issueRepository.findByProject_Id(projectId);
     }
 
     @Override
+    @Transactional
     public Issue createIssue(IssueRequest issueRequest, User user) throws Exception {
 
-        Project project = projectService.getProjectById(issueRequest.getProjectId());
+        Project project = projectService.getProjectForMember(issueRequest.getProjectId(), user);
 
         Issue issue = new Issue();
         issue.setTitle(issueRequest.getTitle());
@@ -61,23 +67,27 @@ public class IssueServiceImpl implements IssueService {
     }
 
     @Override
-    public void deleteIssue(Long issueId, Long userid) throws Exception {
-        getIssueById(issueId);
+    @Transactional
+    public void deleteIssue(Long issueId, User user) throws Exception {
+        getIssueById(issueId, user);
         issueRepository.deleteById(issueId);
     }
 
     @Override
-    public Issue addUserToIssue(Long issueId, Long userId) throws Exception {
-        Issue issue = getIssueById(issueId);
-        User user = userService.findUserById(userId);
+    @Transactional
+    public Issue addUserToIssue(Long issueId, Long assigneeId, User user) throws Exception {
+        Issue issue = getIssueById(issueId, user);
+        User assignee = userService.findUserById(assigneeId);
+        projectService.getProjectForMember(issue.getProject().getId(), assignee);
 
-        issue.setAssignee(user);
+        issue.setAssignee(assignee);
         return issueRepository.save(issue);
     }
 
     @Override
-    public Issue updateStatus(Long issueId, String status) throws Exception {
-        Issue issue = getIssueById(issueId);
+    @Transactional
+    public Issue updateStatus(Long issueId, String status, User user) throws Exception {
+        Issue issue = getIssueById(issueId, user);
         issue.setStatus(status);
         return issueRepository.save(issue);
     }

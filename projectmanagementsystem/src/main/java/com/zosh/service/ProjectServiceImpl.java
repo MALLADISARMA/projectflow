@@ -5,7 +5,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.zosh.modal.Chat;
 import com.zosh.modal.Project;
@@ -14,6 +16,7 @@ import com.zosh.repository.ProjectRepository;
 
 
 @Service
+@Transactional(readOnly = true)
 public class ProjectServiceImpl implements ProjectService{
 
 	@Autowired
@@ -28,6 +31,7 @@ public class ProjectServiceImpl implements ProjectService{
 	
 	
 	@Override
+	@Transactional
 	public Project createProject(Project project, User user) throws Exception {
 		// TODO Auto-generated method stub
 		Project createdProject = new Project();
@@ -43,6 +47,7 @@ public class ProjectServiceImpl implements ProjectService{
 
 		Chat chat = new Chat();
 		chat.setProject(savedProject);
+		chat.getUsers().add(user);
 		
 		Chat projectChat = chatService.createChat(chat);
 		savedProject.setChat(projectChat);
@@ -59,10 +64,12 @@ public class ProjectServiceImpl implements ProjectService{
 		List<Project> projects = projectRepository.findByTeamContainingOrOwner(user, user);
 		
 		if(category!=null) {
-			projects=projects.stream().filter(project->project.getCategory().equals(category)).collect(Collectors.toList());
+			projects=projects.stream().filter(project->category.equals(project.getCategory())).collect(Collectors.toList());
 		}
 		if(tag!=null) {
-			projects=projects.stream().filter(project->project.getCategory().equals(tag)).collect(Collectors.toList());
+			projects=projects.stream()
+					.filter(project -> project.getTags() != null && project.getTags().contains(tag))
+					.collect(Collectors.toList());
 		}
 		 
 		
@@ -78,41 +85,73 @@ public class ProjectServiceImpl implements ProjectService{
 		    throw new Exception("project not found");
 		}
 		return optionalProject.get();
-		
-		
-		
 	}
 
 	@Override
-	public void deleteProject(Long projectId, Long userId) throws Exception {
-		// TODO Auto-generated method stub
-		getProjectById(projectId);
-	//  userService.findUserById(userId);
+	public Project getProjectForMember(Long projectId, User user) throws Exception {
+	Project project = getProjectById(projectId);
+	if (!isMember(project, user)) {
+		throw new AccessDeniedException("You are not a member of this project");
+	}
+	return project;
+	}
+
+	@Override
+	public Project getProjectForOwner(Long projectId, User user) throws Exception {
+	Project project = getProjectById(projectId);
+	if (user == null || project.getOwner() == null
+			|| !project.getOwner().getId().equals(user.getId())) {
+		throw new AccessDeniedException("Only the project owner can perform this action");
+	}
+	return project;
+	}
+
+	private boolean isMember(Project project, User user) {
+	return user != null && (project.getOwner() != null
+			&& project.getOwner().getId().equals(user.getId())
+			|| project.getTeam().stream().anyMatch(member -> member.getId().equals(user.getId())));
+	}
+
+	@Override
+	@Transactional
+	public void deleteProject(Long projectId, User user) throws Exception {
+	getProjectForOwner(projectId, user);
 	projectRepository.deleteById(projectId);
 		
 	}
 
 	@Override
-	public Project updateProject(Project updatedProject, Long id) throws Exception {
-		// TODO Auto-generated method stub
-		
-		Project project = getProjectById(id);
+	@Transactional
+	public Project updateProject(Project updatedProject, Long id, User user) throws Exception {
+		Project project = getProjectForOwner(id, user);
 
-		project.setName(updatedProject.getName());
-		project.setDescription(updatedProject.getDescription());
-		project.setTags(updatedProject.getTags());
+		if (updatedProject.getName() != null) {
+			project.setName(updatedProject.getName());
+		}
+		if (updatedProject.getDescription() != null) {
+			project.setDescription(updatedProject.getDescription());
+		}
+		if (updatedProject.getCategory() != null) {
+			project.setCategory(updatedProject.getCategory());
+		}
+		if (updatedProject.getTags() != null) {
+			project.setTags(updatedProject.getTags());
+		}
 
 		return projectRepository.save(project);
 		
 	}
 
 	@Override
+	@Transactional
 	public void addUserToProject(Long projectId, Long userId) throws Exception {
 		// TODO Auto-generated method stub
 		Project project = getProjectById(projectId);
 		User user = userService.findUserById(userId);
 		if (!project.getTeam().contains(user)) {
-		    project.getChat().getUsers().add(user);
+		    if (project.getChat() != null) {
+		        project.getChat().getUsers().add(user);
+		    }
 		    project.getTeam().add(user);
 		}
 		projectRepository.save(project);
@@ -120,13 +159,16 @@ public class ProjectServiceImpl implements ProjectService{
 	}
 
 	@Override
+	@Transactional
 	public void removeUserFromProject(Long projectId, Long userId) throws Exception {
 		// TODO Auto-generated method stub
 		Project project = getProjectById(projectId);
 		User user = userService.findUserById(userId);
 
 		if (project.getTeam().contains(user)) {
-		    project.getChat().getUsers().remove(user);
+		    if (project.getChat() != null) {
+		        project.getChat().getUsers().remove(user);
+		    }
 		    project.getTeam().remove(user);
 		}
 
@@ -136,7 +178,6 @@ public class ProjectServiceImpl implements ProjectService{
 
 	@Override
 	public Chat getChatByProjectId(Long projectId) throws Exception {
-		// TODO Auto-generated method stub
 		Project project=getProjectById(projectId);
 		
 		return project.getChat();

@@ -35,6 +35,7 @@ public class ProjectController {
  @Autowired
  private UserService userService;
  
+ @Autowired
  private InvitationService invitationService;
  @GetMapping
  public ResponseEntity<List<Project>> getProjects(
@@ -52,12 +53,11 @@ public class ProjectController {
          @RequestHeader("Authorization") String jwt
  ) throws Exception {
      User user = userService.findUserProfileByJwt(jwt);
-     Project project = projectService.getProjectById(projectId);
+     Project project = projectService.getProjectForMember(projectId, user);
      return new ResponseEntity<>(project, HttpStatus.OK);
  }
  @PostMapping
  public ResponseEntity<Project> createProject(
-         @PathVariable Long projectId,
          @RequestHeader("Authorization") String jwt,
          @RequestBody Project project
  ) throws Exception {
@@ -73,7 +73,7 @@ public class ProjectController {
          @RequestBody Project project
  ) throws Exception {
      User user = userService.findUserProfileByJwt(jwt);
-     Project updatedproject = projectService.updateProject(project, projectId);
+     Project updatedproject = projectService.updateProject(project, projectId, user);
      return new ResponseEntity<>(updatedproject, HttpStatus.OK);
  }
  @DeleteMapping("/{projectId}")
@@ -82,8 +82,9 @@ public class ProjectController {
          @RequestHeader("Authorization") String jwt
  ) throws Exception {
      User user = userService.findUserProfileByJwt(jwt);
-     projectService.deleteProject(projectId, user.getId());
+     projectService.deleteProject(projectId, user);
      MessageResponse res = new MessageResponse();
+     res.setMessage("Project deleted successfully");
      return new ResponseEntity<>(res, HttpStatus.OK);
  }
  @GetMapping("/search")
@@ -101,37 +102,34 @@ public class ProjectController {
          @RequestHeader("Authorization") String jwt
  ) throws Exception {
      User user = userService.findUserProfileByJwt(jwt);
+     projectService.getProjectForMember(projectId, user);
      Chat chat = projectService.getChatByProjectId(projectId);
      return new ResponseEntity<>(chat, HttpStatus.OK);
  }
  @PostMapping("/invite")
  public ResponseEntity<MessageResponse> inviteProject(
           @RequestBody InviteRequest req,
-		 @RequestHeader("Authorization") String jwt,
-         @RequestBody Project project
+		 @RequestHeader("Authorization") String jwt
  ) throws Exception {
      User user = userService.findUserProfileByJwt(jwt);
-     
+     projectService.getProjectForOwner(req.getProjectId(), user);
      invitationService.sendInvitation(req.getEmail(),req.getProjectId());
      
      MessageResponse res=new MessageResponse();
+     res.setMessage("Invitation sent");
      return new ResponseEntity<>(res,HttpStatus.OK);
-   //  return new ResponseEntity<>(createdproject, HttpStatus.OK);
  }
  
  
  
 
-@GetMapping("/accept_invite")
+@PostMapping("/accept_invite")
 public ResponseEntity<Invitation> acceptInviteProject(
         @RequestParam String token,
-        @RequestHeader("Authorization") String jwt,
-        @RequestBody Project project
+        @RequestHeader("Authorization") String jwt
 ) throws Exception {
     User user = userService.findUserProfileByJwt(jwt);
-    Invitation invitation = invitationService.acceptInvitation(token, user.getId());
-    projectService.addUserToProject(invitation.getProjectId(), user.getId());
-    
+    Invitation invitation = invitationService.acceptInvitation(token, user);
     
     return new ResponseEntity<>(invitation, HttpStatus.ACCEPTED);
 }
@@ -142,4 +140,3 @@ public ResponseEntity<Invitation> acceptInviteProject(
 	
 	
 	
-

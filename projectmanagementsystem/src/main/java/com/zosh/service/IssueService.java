@@ -7,15 +7,15 @@ import com.zosh.modal.User;
 import com.zosh.request.IssueRequest;
 
 public interface IssueService {
-	Issue getIssueById(Long issueId) throws Exception;
+	Issue getIssueById(Long issueId, User user) throws Exception;
 
-	List<Issue> getIssueByProjectId(Long projectId) throws Exception;
+	List<Issue> getIssueByProjectId(Long projectId, User user) throws Exception;
 
 	Issue createIssue(IssueRequest issueRequest, User user) throws Exception;
 
-	void deleteIssue(Long issueId, Long userid) throws Exception;
+	void deleteIssue(Long issueId, User user) throws Exception;
 
-	Issue addUserToIssue(Long issueId, Long userId) throws Exception;
+	Issue addUserToIssue(Long issueId, Long assigneeId, User user) throws Exception;
 
-	Issue updateStatus(Long issueId, String status) throws Exception;
+	Issue updateStatus(Long issueId, String status, User user) throws Exception;
 }

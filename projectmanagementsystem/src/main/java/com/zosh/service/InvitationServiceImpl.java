@@ -5,8 +5,10 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.zosh.modal.Invitation;
+import com.zosh.modal.User;
 import com.zosh.repository.InvitationRepository;
 
 @Service
@@ -17,6 +19,9 @@ public class InvitationServiceImpl implements InvitationService {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private ProjectService projectService;
 
     
     public void sendInvitation(String email, Long projectId) {
@@ -35,14 +40,22 @@ public class InvitationServiceImpl implements InvitationService {
     }
 
     @Override
-    public Invitation acceptInvitation(String token, Long userId) {
+    @Transactional
+    public Invitation acceptInvitation(String token, User user) throws Exception {
 
         Invitation invitation = invitationRepository.findByToken(token);
 
         if (invitation == null) {
-            throw new RuntimeException("Invalid invitation token");
+            throw new IllegalArgumentException("Invalid invitation token");
+        }
+        if (user == null || user.getEmail() == null
+                || !invitation.getEmail().equalsIgnoreCase(user.getEmail())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Invitation was issued to a different email address");
         }
 
+        projectService.addUserToProject(invitation.getProjectId(), user.getId());
+        invitationRepository.delete(invitation);
         return invitation;
     }
 

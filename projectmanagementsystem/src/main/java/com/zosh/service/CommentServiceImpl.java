@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.zosh.modal.Comment;
 import com.zosh.modal.Issue;
@@ -14,6 +15,7 @@ import com.zosh.repository.IssueRepository;
 import com.zosh.repository.UserRepository;
 
 @Service
+@Transactional(readOnly = true)
 public class CommentServiceImpl implements CommentService {
 
     @Autowired
@@ -27,6 +29,7 @@ public class CommentServiceImpl implements CommentService {
 
    
     @Override
+    @Transactional
     public Comment createComment(Long issueId, Long userId, String content) {
 
         Optional<Issue> issueOptional = issueRepository.findById(issueId);
@@ -58,6 +61,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
     public void deleteComment(Long commentId, Long userId) throws Exception {
         Optional<Comment> commentOptional = commentRepository.findById(commentId);
         Optional<User> userOptional = userRepository.findById(userId);
@@ -72,7 +76,7 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentOptional.get();
         User user = userOptional.get();
 
-        if (comment.getUser().equals(user)) {
+        if (comment.getUser().getId().equals(user.getId())) {
             commentRepository.delete(comment);
         } else {
             throw new Exception("User does not have permission to delete this comment!");

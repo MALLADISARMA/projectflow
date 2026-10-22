@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.razorpay.PaymentLink;
 import com.razorpay.RazorpayClient;
@@ -27,15 +28,25 @@ public class PaymentController {
 	@Value("${razorpay.api.secret}")
 	private String apiSecret;
 
+	@Value("${app.frontend-url}")
+	private String frontendUrl;
+
 	@Autowired
 	private UserService userService;
-	
+
 	@PostMapping("/{planType}")
 	public ResponseEntity<PaymentLinkResponse> createPaymentLink(
 	        @PathVariable PlanType planType,
 	        @RequestHeader("Authorization") String jwt
 	) throws Exception {
 	    User user = userService.findUserProfileByJwt(jwt);
+	    if (planType == PlanType.FREE) {
+	        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The free plan cannot be purchased");
+	    }
+	    if (apiKey.isBlank() || apiSecret.isBlank()) {
+	        throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+	                "Razorpay credentials are not configured");
+	    }
 	    int amount = 799 * 100;
 	    if (planType.equals(PlanType.ANNUALLY)) {
 	        amount = amount * 12;
@@ -48,6 +59,7 @@ public class PaymentController {
 	        JSONObject paymentLinkRequest = new JSONObject();
 	        paymentLinkRequest.put("amount", amount);
 	        paymentLinkRequest.put("currency", "INR");
+	        paymentLinkRequest.put("reference_id", user.getId() + "-" + planType.name());
 
 	        JSONObject customer = new JSONObject();
 	        customer.put("name", user.getFullName());
@@ -58,7 +70,7 @@ public class PaymentController {
 	        notify.put("email", true);
 	        paymentLinkRequest.put("notify", notify);
 	        
-	        paymentLinkRequest.put("callback_url", "http://localhost:5173/upgrade_plan/success?planType=" + planType);
+	        paymentLinkRequest.put("callback_url", frontendUrl + "/upgrade_plan/success?planType=" + planType);
 	        
 	        PaymentLink payment=razorpay.paymentLink.create(paymentLinkRequest);
 	        String paymentLinkId = payment.get("id");
@@ -74,5 +86,4 @@ public class PaymentController {
 	  
 	}
 
-	
 }

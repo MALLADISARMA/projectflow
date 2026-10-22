@@ -19,9 +19,8 @@ import com.zosh.modal.User;
 import com.zosh.request.CreateCommentRequest;
 import com.zosh.response.MessageResponse;
 import com.zosh.service.CommentService;
+import com.zosh.service.IssueService;
 import com.zosh.service.UserService;
-
-import jdk.jshell.spi.ExecutionControl.UserException;
 
 @RestController
 @RequestMapping("/api/comments")
@@ -33,6 +32,8 @@ public class CommentController {
 @Autowired
 	private UserService userService;
 
+@Autowired
+private IssueService issueService;
 	
 
 	@PostMapping()
@@ -41,6 +42,7 @@ public class CommentController {
 	        @RequestBody CreateCommentRequest req,
 	        @RequestHeader("Authorization") String jwt) throws Exception {
 	    User user = userService.findUserProfileByJwt(jwt);
+	    issueService.getIssueById(req.getIssueId(), user);
 	    Comment createdComment = commentService.createComment(req.getIssueId(), user.getId(), req.getContent());
 	    return new ResponseEntity<>(createdComment, HttpStatus.CREATED);
 	}
@@ -57,7 +59,10 @@ public class CommentController {
 	    return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 	@GetMapping("/{issueId}")
-	public ResponseEntity<List<Comment>> getCommentsByIssueId(@PathVariable Long issueId) {
+	public ResponseEntity<List<Comment>> getCommentsByIssueId(@PathVariable Long issueId,
+	        @RequestHeader("Authorization") String jwt) throws Exception {
+	    User user = userService.findUserProfileByJwt(jwt);
+	    issueService.getIssueById(issueId, user);
 	    List<Comment> comments = commentService.findCommentByIssueId(issueId);
 	    return new ResponseEntity<>(comments, HttpStatus.OK);
 	}
