@@ -3,16 +3,15 @@ package com.zosh.service;
 import java.time.LocalDate;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.zosh.modal.PlanType;
 import com.zosh.modal.Subscription;
 import com.zosh.modal.User;
 import com.zosh.repository.SubscriptionRepository;
 
+@Service
 public class SubscriptionServiceImpl implements SubscriptionService {
-
-	@Autowired
-	private UserService userService;
 
 	@Autowired
 	private SubscriptionRepository subscriptionRepository;
@@ -76,6 +75,5 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 		    return endDate.isAfter(currentDate) || endDate.isEqual(currentDate);
 		}
 	}
-
 
 

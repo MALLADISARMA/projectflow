@@ -11,7 +11,6 @@ import com.zosh.modal.Issue;
 import com.zosh.modal.IssueDTO;
 import com.zosh.modal.User;
 import com.zosh.request.IssueRequest;
-import com.zosh.response.AuthResponse;
 import com.zosh.response.MessageResponse;
 import com.zosh.service.IssueService;
 import com.zosh.service.UserService;
@@ -25,8 +24,6 @@ public class IssueController {
 
     @Autowired
     private UserService userService;
-    @Autowired 
-    private Issue issue;
 
     @GetMapping("/{issueId}")
     public ResponseEntity<Issue> getIssueById(@PathVariable Long issueId) throws Exception {
