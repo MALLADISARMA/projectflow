@@ -59,6 +59,8 @@ mvnw.cmd clean package
 
 Application configuration is located in [projectmanagementsystem/src/main/resources/application.properties](projectmanagementsystem/src/main/resources/application.properties). Runtime settings can be overridden with environment variables:
 
+After signup or login, retrieve the current user's profile with `GET /api/users/profile` and the returned JWT in the `Authorization: Bearer <token>` header. The response omits the password.
+
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `DB_URL` | `jdbc:mysql://localhost:3306/projectmanagementsystem?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC` | MySQL JDBC URL |

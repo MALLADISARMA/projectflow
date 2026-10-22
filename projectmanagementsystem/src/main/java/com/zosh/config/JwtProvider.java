@@ -27,10 +27,23 @@ public class JwtProvider {
 			
 	 }
 	 public static String getEmailFromToken(String jwt){
-		 Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt).getBody();
+        if (jwt == null || jwt.isBlank()) {
+            throw new IllegalArgumentException("Authorization token is required");
+        }
+        String token = jwt.trim();
+        if (token.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            token = token.substring(7).trim();
+        }
+        if (token.isEmpty()) {
+            throw new IllegalArgumentException("Bearer token is empty");
+        }
 
-		return  String.valueOf(claims.get("email"));
-		 
+        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+        String email = claims.get("email", String.class);
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Token does not contain an email");
+        }
+        return email;
 		 
 	 }
 }

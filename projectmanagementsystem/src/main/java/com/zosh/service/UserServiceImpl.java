@@ -18,15 +18,8 @@ public class UserServiceImpl implements UserService{
 	
 	@Override
 	public User findUserProfileByJwt(String jwt) throws Exception {
-		// TODO Auto-generated method stub
 		String email=JwtProvider.getEmailFromToken(jwt);
 		return findUserByEmail(email);
-
-		 
-		
-		
-		
-		
 	}
 
 @Override
