@@ -1,0 +1,273 @@
+.app-shell {
+  min-height: 100vh;
+  background: #f7f8fa;
+}
+
+.topbar {
+  height: 68px;
+  padding: 0 max(32px, calc((100vw - 1120px) / 2));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border-bottom: 1px solid #e9ebf0;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #202532;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.3px;
+  text-decoration: none;
+}
+
+.brand-mark {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: #4f46e5;
+  border-radius: 9px;
+}
+
+.workspace-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #687083;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.workspace-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #8b91a0;
+}
+
+.page-content {
+  width: min(1120px, calc(100% - 64px));
+  margin: 0 auto;
+  padding: 48px 0 64px;
+}
+
+.page-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #777f91;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.page-heading h1 {
+  margin: 0;
+  color: #202532;
+  font-size: 30px;
+  font-weight: 650;
+  letter-spacing: -1.1px;
+  line-height: 1.2;
+}
+
+.page-description {
+  margin: 8px 0 0;
+  color: #747c8d;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.project-count {
+  margin-bottom: 3px;
+  padding: 6px 10px;
+  color: #626a7b;
+  background: #fff;
+  border: 1px solid #e7e9ef;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.project-layout {
+  display: grid;
+  grid-template-columns: 236px minmax(0, 1fr);
+  align-items: start;
+  gap: 22px;
+}
+
+.filter-panel,
+.project-results {
+  background: #fff;
+  border: 1px solid #e7e9ef;
+  border-radius: 11px;
+  box-shadow: 0 2px 5px rgb(24 32 54 / 3%);
+}
+
+.filter-panel {
+  padding: 18px 16px;
+}
+
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #8b91a0;
+}
+
+.panel-heading h2 {
+  margin: 0;
+  color: #252a37;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.filter-group {
+  margin-top: 22px;
+}
+
+.filter-group h3 {
+  margin: 0 0 10px;
+  color: #8b91a0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.filter-option {
+  width: 100%;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+  color: #4f46e5;
+  background: #f3f2ff;
+  border: 0;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 550;
+  text-align: left;
+}
+
+.filter-indicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.project-results {
+  min-height: 390px;
+  overflow: hidden;
+}
+
+.results-heading {
+  min-height: 59px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 1px solid #eef0f3;
+}
+
+.results-heading h2 {
+  margin: 0;
+  color: #292e3b;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.results-heading span {
+  color: #8b91a0;
+  font-size: 12px;
+}
+
+.empty-state {
+  min-height: 328px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.empty-state-icon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  color: #7771e8;
+  background: #f3f2ff;
+  border-radius: 14px;
+}
+
+.empty-state h3 {
+  margin: 16px 0 5px;
+  color: #292e3b;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.empty-state p {
+  margin: 0;
+  color: #858b99;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (max-width: 680px) {
+  .topbar {
+    height: 60px;
+    padding: 0 20px;
+  }
+
+  .page-content {
+    width: calc(100% - 40px);
+    padding: 34px 0 40px;
+  }
+
+  .page-heading {
+    align-items: flex-start;
+    margin-bottom: 22px;
+  }
+
+  .page-heading h1 {
+    font-size: 27px;
+  }
+
+  .project-layout {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .filter-panel {
+    padding: 15px;
+  }
+
+  .filter-group {
+    margin-top: 16px;
+  }
+
+  .project-results {
+    min-height: 330px;
+  }
+
+  .empty-state {
+    min-height: 268px;
+  }
+}
