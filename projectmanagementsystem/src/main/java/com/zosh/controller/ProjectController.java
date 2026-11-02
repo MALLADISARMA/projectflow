@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.MailSendException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -113,10 +114,16 @@ public class ProjectController {
  ) throws Exception {
      User user = userService.findUserProfileByJwt(jwt);
      projectService.getProjectForOwner(req.getProjectId(), user);
-     invitationService.sendInvitation(req.getEmail(),req.getProjectId());
+     try {
+         invitationService.sendInvitation(req.getEmail(), req.getProjectId());
+     } catch (MailSendException exception) {
+         MessageResponse error = new MessageResponse();
+         error.setMessage(exception.getMessage());
+         return new ResponseEntity<>(error, HttpStatus.BAD_GATEWAY);
+     }
      
      MessageResponse res=new MessageResponse();
-     res.setMessage("Invitation sent");
+     res.setMessage("Invitation email sent");
      return new ResponseEntity<>(res,HttpStatus.OK);
  }
  

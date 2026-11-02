@@ -29,13 +29,15 @@ A Spring Boot-based project management backend providing authentication, project
 cd projectmanagementsystem
 ```
 
-2. Run using the Maven wrapper (Windows):
+2. On Windows, start the backend with the local launcher so it loads database credentials from `.env`:
 
 ```powershell
-mvnw.cmd spring-boot:run
+.\run-local.ps1
 ```
 
-Or (macOS / Linux):
+The launcher requires a non-empty `DB_URL` in `.env`, loads `DB_USERNAME` and `DB_PASSWORD`, and passes the database URL explicitly to Spring Boot.
+
+On macOS / Linux, or when database environment variables are already configured in your shell, you can run the Maven wrapper directly:
 
 ```bash
 ./mvnw spring-boot:run
@@ -68,12 +70,12 @@ After signup or login, retrieve the current user's profile with `GET /api/users/
 | `DB_PASSWORD` | empty | MySQL password |
 | `DB_DDL_AUTO` | `update` | Hibernate schema behavior |
 | `JWT_SECRET` | local-development-only value | JWT signing secret; set a private secret of at least 32 bytes outside local development |
-| `MAIL_USERNAME`, `MAIL_PASSWORD` | empty | SMTP credentials |
+| `MAIL_USERNAME`, `MAIL_PASSWORD` | empty | SMTP credentials; Gmail requires an App Password (not the normal account password) |
 | `RAZORPAY_API_KEY`, `RAZORPAY_API_SECRET` | empty | Razorpay credentials |
 | `RAZORPAY_WEBHOOK_SECRET` | empty | Secret configured for the Razorpay webhook |
 | `APP_FRONTEND_URL` | `http://localhost:5173` | Frontend base URL used for payment redirects |
 
-Local startup uses MySQL on `localhost:3306`; set `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` to match your MySQL installation. Email and payment credentials are only needed when using those integrations. Tests use an isolated in-memory H2 database and do not require MySQL or external-service credentials.
+Local startup uses MySQL on `localhost:3306`; set `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` to match your MySQL installation. To send real invitation emails, set `MAIL_USERNAME` to the sending email address and `MAIL_PASSWORD` to its SMTP password. For Gmail, enable 2-Step Verification and create an App Password, then place that 16-character App Password in `.env`; ordinary Gmail account passwords are not accepted by SMTP. The Windows launcher removes spaces from a copied Gmail App Password and warns if its length is not 16. Restart the backend after editing `.env`. Email and payment credentials are only needed when using those integrations. Tests use an isolated in-memory H2 database and do not require MySQL or external-service credentials.
 
 For local development on Windows, edit the ignored `projectmanagementsystem/.env` file with your credentials, then run:
 

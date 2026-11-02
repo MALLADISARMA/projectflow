@@ -2,8 +2,8 @@ package com.zosh.service;
 
 import java.util.UUID;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +23,9 @@ public class InvitationServiceImpl implements InvitationService {
     @Autowired
     private ProjectService projectService;
 
-    
+    @Value("${app.frontend-url:http://localhost:5173}")
+    private String frontendUrl;
+    @Transactional
     public void sendInvitation(String email, Long projectId) {
 
         String invitationToken = UUID.randomUUID().toString();
@@ -35,7 +37,8 @@ public class InvitationServiceImpl implements InvitationService {
 
         invitationRepository.save(invitation);
 
-        String invitationLink = "http://localhost:5173/accept_invitation?token=" + invitationToken;
+        String baseUrl = frontendUrl.replaceAll("/+$", "");
+        String invitationLink = baseUrl + "/accept_invitation?token=" + invitationToken;
         emailService.sendEmailWithToken(email, invitationLink);
     }
 

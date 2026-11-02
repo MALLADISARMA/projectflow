@@ -36,6 +36,24 @@ foreach ($line in Get-Content -LiteralPath $envFile) {
     [Environment]::SetEnvironmentVariable($name, $value, "Process")
 }
 
+if ($env:MAIL_USERNAME -match '@gmail\.com$' -and -not [string]::IsNullOrWhiteSpace($env:MAIL_PASSWORD)) {
+    $env:MAIL_PASSWORD = $env:MAIL_PASSWORD -replace '\s', ''
+    if ($env:MAIL_PASSWORD.Length -ne 16) {
+        Write-Warning "MAIL_PASSWORD for Gmail is $($env:MAIL_PASSWORD.Length) characters. Gmail SMTP requires a 16-character Google App Password; update MAIL_PASSWORD in .env."
+    }
+}
+
+if ([string]::IsNullOrWhiteSpace($env:DB_URL)) {
+    throw "DB_URL is missing or empty in .env. Set it to your MySQL JDBC URL."
+}
+if (-not $env:DB_URL.StartsWith("jdbc:mysql://", [StringComparison]::OrdinalIgnoreCase)) {
+    throw "DB_URL in .env must be a MySQL JDBC URL beginning with jdbc:mysql://."
+}
+
+# Make the configured URL explicit for Spring Boot, even if the shell has a
+# stale SPRING_DATASOURCE_URL override.
+$env:SPRING_DATASOURCE_URL = $env:DB_URL
+
 Push-Location $PSScriptRoot
 try {
     & .\mvnw.cmd spring-boot:run
