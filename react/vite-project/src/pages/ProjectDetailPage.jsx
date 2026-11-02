@@ -30,6 +30,7 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState(null)
   const [issues, setIssues] = useState([])
   const [messages, setMessages] = useState([])
+  const [unreadMessages, setUnreadMessages] = useState(0)
   const [loading, setLoading] = useState(true)
   const [pageError, setPageError] = useState('')
   const [issueFormOpen, setIssueFormOpen] = useState(false)
@@ -82,25 +83,57 @@ export default function ProjectDetailPage() {
 
   const requestedTab = searchParams.get('tab')
   const activeTab = ['overview', 'tasks', 'chat'].includes(requestedTab) ? requestedTab : 'overview'
+  const lastSeenStorageKey = `projectflow-chat-last-seen:${user?.id}:${projectId}`
 
   const loadMessages = useCallback(async () => {
     try {
       const result = await apiRequest(`/api/messages/chat/${projectId}`, { token })
-      setMessages(Array.isArray(result) ? result : [])
+      const loadedMessages = Array.isArray(result) ? result : []
+      setMessages(loadedMessages)
       setChatError('')
+
+      const latestMessage = loadedMessages.at(-1)
+      const latestMessageId = latestMessage?.id
+      const lastSeenMessageId = localStorage.getItem(lastSeenStorageKey)
+
+      if (activeTab === 'chat') {
+        if (latestMessageId != null) {
+          localStorage.setItem(lastSeenStorageKey, String(latestMessageId))
+        }
+        setUnreadMessages(0)
+      } else if (lastSeenMessageId == null) {
+        if (latestMessageId != null) {
+          localStorage.setItem(lastSeenStorageKey, String(latestMessageId))
+        }
+        setUnreadMessages(0)
+      } else {
+        const lastSeenIndex = loadedMessages.findIndex(
+          (message) => String(message.id) === lastSeenMessageId,
+        )
+        if (lastSeenIndex < 0) {
+          if (latestMessageId != null) {
+            localStorage.setItem(lastSeenStorageKey, String(latestMessageId))
+          }
+          setUnreadMessages(0)
+        } else {
+          const incomingMessages = loadedMessages
+            .slice(lastSeenIndex + 1)
+            .filter((message) => String(message.sender?.id) !== String(user?.id))
+          setUnreadMessages(incomingMessages.length)
+        }
+      }
     } catch (requestError) {
       setChatError(requestError.message)
     }
-  }, [projectId, token])
+  }, [activeTab, lastSeenStorageKey, projectId, token, user?.id])
 
   useEffect(() => {
-    if (activeTab !== 'chat') return undefined
-    // The backend exposes chat history over HTTP, so refresh while this tab is open.
+    // Poll while the project is open so messages can mark the chat tab unread.
     // eslint-disable-next-line react/set-state-in-effect
     loadMessages()
-    const timer = window.setInterval(loadMessages, 10000)
+    const timer = window.setInterval(loadMessages, 5000)
     return () => window.clearInterval(timer)
-  }, [activeTab, loadMessages])
+  }, [loadMessages])
 
   const changeTab = (tab) => {
     setSearchParams(tab === 'overview' ? {} : { tab })
@@ -309,7 +342,16 @@ export default function ProjectDetailPage() {
       <nav className="detail-tabs" aria-label="Project sections">
         {['overview', 'tasks', 'chat'].map((tab) => (
           <button className={`detail-tab ${activeTab === tab ? 'active' : ''}`} key={tab} onClick={() => changeTab(tab)} type="button">
-            {tab === 'chat' ? 'Team chat' : tab === 'tasks' ? 'Tasks' : 'Overview'}
+            {tab === 'chat' ? (
+              <>
+                Team chat
+                {unreadMessages > 0 && (
+                  <span aria-label={`${unreadMessages} unread messages`} className="unread-badge">
+                    {unreadMessages > 99 ? '99+' : unreadMessages}
+                  </span>
+                )}
+              </>
+            ) : tab === 'tasks' ? 'Tasks' : 'Overview'}
           </button>
         ))}
       </nav>

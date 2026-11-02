@@ -980,6 +980,22 @@
   color: #4f46e5;
 }
 
+.unread-badge {
+  min-width: 19px;
+  height: 19px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 2px;
+  padding: 0 5px;
+  color: #fff;
+  background: #e5484d;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .detail-tab.active::after {
   position: absolute;
   right: 0;
